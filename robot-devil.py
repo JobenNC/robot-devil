@@ -1,64 +1,53 @@
-import discord
-import logging
-import asyncio
-import aiohttp
-import pdb
+import asyncio, discord, random, logging, sys, pdb
+from yarnSpin.fanFicMadLib import getStory
 
 logging.basicConfig(level=logging.DEBUG)
+client = discord.Client()
+optedIn = set()
 
 @asyncio.coroutine
-def fetch_page(url):
-    resp = yield from aiohttp.request('GET', url)
-    assert resp.status == 200
-    content = yield from resp.read()
-    print('URL: {0}: Content: {1}'.format(url, url))
-
-@asyncio.coroutine
-def new(future, name, seconds=2):
-    print('{0} sleeping for: {1}'.format(name, seconds))
-    yield from asyncio.sleep(seconds)
-    print("{} I'm awake!".format(name))
-    yield from asyncio.sleep(seconds)
-    future.set_result('{0} is done!'.format(name))
-
-def done(future):
-    print(future.result())
-
-@asyncio.coroutine
-def discordConn():
-    client = discord.Client()
-    login = yield from client.login('josephjarriel@gmail.com', 'Mypass321')
+def hailSatan(token):
+    login = yield from client.login(token)
     print(login)
     print('returned from login')
     connected = yield from client.connect()
     print('returned from connect')
     print(connect)
+    print('probably done')
 
-loop = asyncio.get_event_loop()
+@client.async_event
+def on_message(message):
+    if message.channel.name not in ('crows-nest', 'general'):
+        return
 
-future1 = asyncio.Future()
-future2 = asyncio.Future()
+    if client.user in message.mentions:
+        if message.content.find("$SellSoul") >= 0:
+            optedIn.add(message.author)
+            yield from client.send_message(message.channel, "<@" + message.author.id +  "> You'll soon regret this.")
+        if message.content.find("$ReclaimSoul") >= 0:
+            yield from client.send_message(message.channel, "<@" + message.author.id +  "> You've choses wisely.")
+            optedIn.remove(message.author)
 
-tasks1 = [
-    new(future1, 'task1', 4),
-    new(future2, 'task2', 3),
-]
+        if not optedIn:
+            return
+        if message.content.find('$Storytime') >= 0:
+            peopleList = ["<@" + member.id + ">" for member in optedIn]
+            random.shuffle(peopleList)
 
-tasks2 = [
-    fetch_page('http://google.com'),
-    fetch_page('http://cnn.com'),
-    fetch_page('http://twitter.com'),
-]
+            names, story = getStory()
+            for i, name in enumerate(names):
+                story = story.replace(name, peopleList[i % len(peopleList)])
 
-tasks3 = [
-    discordConn()
-]
+            storyText = story
+            #storyUrl = story[1]
 
-future1.add_done_callback(done)
-future2.add_done_callback(done)
+            yield from client.send_message(message.channel, 'Once upon a time...')
+            while len(storyText) > 1900:
+                yield from client.send_message(message.channel, storyText[:1900])
+                storyText = storyText[1900:]
+            yield from client.send_message(message.channel, storyText)
+            #yield from client.send_message(message.channel, storyUrl)
 
-loop.run_until_complete(
-    asyncio.wait(tasks3)
-)
-loop.close()
-
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(hailSatan(sys.argv[1]))
