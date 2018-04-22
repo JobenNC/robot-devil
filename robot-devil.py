@@ -29,17 +29,27 @@ def on_message(message):
             optedIn.remove(message.author)
 
         if not optedIn:
-            return
+            pass
+            #return
         if message.content.find('$Storytime') >= 0:
-            peopleList = ["<@" + member.id + ">" for member in optedIn]
+            #peopleList = ["<@" + member.id + ">" for member in optedIn]
+            peopleList = ["<@" + member.id + ">" for member in client.get_all_members()]
+            #pdb.set_trace()
+            peopleList.remove("<@" + client.user.id + ">")
             random.shuffle(peopleList)
 
             names, story = getStory()
-            for i, name in enumerate(names):
-                story = story.replace(name, peopleList[i % len(peopleList)])
+            #for i, name in enumerate(names):
+            #    story = story.replace(name, peopleList[i % len(peopleList)])
+            for i, person in enumerate(peopleList):
+                story = story.replace(names[i % len(names)], person)
 
             storyText = story
+            storyText = storyText.replace("\\n", "\n")
             #storyUrl = story[1]
+
+            #pdb.set_trace()
+            print(storyText)
 
             yield from client.send_message(message.channel, 'Once upon a time...')
             while len(storyText) > 1900:
