@@ -12,7 +12,7 @@ def hailSatan(token):
     print('returned from login')
     connected = yield from client.connect()
     print('returned from connect')
-    print(connect)
+    print(connected)
     print('probably done')
 
 @client.async_event
