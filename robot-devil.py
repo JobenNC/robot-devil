@@ -35,7 +35,8 @@ def on_message(message):
             #peopleList = ["<@" + member.id + ">" for member in optedIn]
             peopleList = ["<@" + member.id + ">" for member in client.get_all_members()]
             #pdb.set_trace()
-            peopleList.remove("<@" + client.user.id + ">")
+            #peopleList.remove("<@" + client.user.id + ">")
+            peopleList = list(filter(lambda a: a != "<@" + client.user.id + ">", peopleList))
             random.shuffle(peopleList)
 
             names, story = getStory()
